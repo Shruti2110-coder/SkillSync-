@@ -7,7 +7,6 @@ import {
   deleteCourse,
   addLessonToCourse
 } from "../controllers/courseController.js";
-import Course from "../models/Course.js";
 
 
 import { protect } from "../middleware/authMiddleware.js";
@@ -31,15 +30,5 @@ router.post(
   adminOnly,
   addLessonToCourse
 );
-
-router.post("/", async (req, res) => {
-  try {
-    const course = new Course(req.body);
-    await course.save();
-    res.status(201).json(course);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
 
 export default router;

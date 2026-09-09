@@ -6,14 +6,16 @@ import courseRoutes from "./routes/courseRoutes.js";
 import cors from "cors";
 import userRoutes from "./routes/userRoutes.js";
 
-
 dotenv.config();
-connectDB();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.json({ status: "ok", service: "SkillSync API" });
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
@@ -21,7 +23,14 @@ app.use("/api/users", userRoutes);
 
 const PORT = process.env.PORT || 5001;
 
+// Wait for the database before accepting traffic, otherwise requests
+// hang and fail with a Mongoose buffering timeout.
+const start = async () => {
+  await connectDB();
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+};
+
+start();

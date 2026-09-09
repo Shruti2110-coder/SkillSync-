@@ -6,7 +6,9 @@ const router = express.Router();
 
 // GET all users
 router.get("/", protect, async (req, res) => {
-  const users = await User.find().populate("enrolledCourses.course");
+  const users = await User.find()
+    .select("-password")
+    .populate("enrolledCourses.course");
   res.json(users);
 });
 
@@ -19,7 +21,7 @@ router.post("/enroll/:courseId", protect, async (req, res) => {
     const user = await User.findById(userId);
 
     const alreadyEnrolled = user.enrolledCourses.some(
-      (c) => c.course.toString() === courseId
+      (c) => c.course?.toString() === courseId
     );
 
     if (alreadyEnrolled) {
@@ -38,9 +40,9 @@ router.post("/enroll/:courseId", protect, async (req, res) => {
 // 📊 USER PROGRESS
 router.get("/progress", protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).populate(
-      "enrolledCourses.course"
-    );
+    const user = await User.findById(req.user.id)
+      .select("-password")
+      .populate("enrolledCourses.course");
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -80,7 +82,7 @@ router.post("/lesson-complete/:courseId/:lessonId", protect, async (req, res) =>
     const user = await User.findById(req.user.id);
 
     const enrolledCourse = user.enrolledCourses.find(
-      (c) => c.course.toString() === courseId
+      (c) => c.course?.toString() === courseId
     );
 
     if (!enrolledCourse) {

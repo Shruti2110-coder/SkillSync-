@@ -1,35 +1,82 @@
-import React from 'react'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
-import  api  from '../services/api';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../services/api";
 
+export default function Login() {
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
 
-function Login() {
-    const[email, setEmail] = useState("");
-    const[password, setPassword] = useState("");
-    const navigate = useNavigate();
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
-    const handleLogin = async (e) => {
-      e.preventDefault();
-   try {
-const res = await api.post("/auth/login", { email, password });
-localStorage.setItem("token", res.data.token);
-alert(" Login successful!");
-navigate("/dashboard");
-} catch (err) {
-alert(" Invalid email or password");
-}
-}
+  const submit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      const { data } = await api.post("/auth/login", form);
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not sign you in.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
-   <form onSubmit={handleLogin} className='flex items-center justify-center h-screen bg-[#F8F9FC]'>
-    <div className='bg-white p-8 rounded-2xl shadow w-96'>
-        <h2 className='text-xl font-bold mb-4'>Login</h2>
-        <input type='email' className='border p-2 w-full mb-3' placeholder='Email' value={email} onChange={e => setEmail(e.target.value)}/>
-       <input type='password' className='border p-2 w-full mb-3' placeholder='Password' value={password} onChange={e => setPassword(e.target.value)}/>
-       <button className='bg-indigo-500 text-white w-full py-2 rounded'>Login</button>
-    </div>
-   </form>
-  )
-}
+    <main className="mx-auto flex max-w-sm flex-col justify-center px-6 py-24">
+      <h1 className="display text-4xl">Log in</h1>
+      <p className="mt-3 text-ink-muted">Pick up where you left off.</p>
 
-export default Login
+      <form onSubmit={submit} className="mt-10 space-y-7">
+        <div>
+          <label htmlFor="email" className="label">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            className="field mt-2"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={set("email")}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="password" className="label">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            required
+            className="field mt-2"
+            placeholder="••••••••"
+            value={form.password}
+            onChange={set("password")}
+          />
+        </div>
+
+        {error && <p className="text-sm text-ink">{error}</p>}
+
+        <button className="btn w-full" disabled={busy}>
+          {busy ? "Signing in…" : "Log in"}
+        </button>
+      </form>
+
+      <p className="mt-8 text-sm text-ink-muted">
+        New here?{" "}
+        <Link
+          to="/register"
+          className="underline decoration-rule underline-offset-4 transition-colors hover:decoration-ink"
+        >
+          Create an account
+        </Link>
+      </p>
+    </main>
+  );
+}
